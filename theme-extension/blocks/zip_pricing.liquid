@@ -1,0 +1,95 @@
+<!-- Linking Polaris-inspired styles and controller scripts safely from Shopify CDN -->
+{{ 'zip-pricing.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'zip-pricing.js' | asset_url }}" defer="defer"></script>
+
+<!-- 
+  Theme App Extension wrapper.
+  Stateless data transmission binds Shopify liquid context parameters directly to DOM data attributes.
+-->
+<div 
+  class="zip-pricing-widget" 
+  data-product-id="{{ product.id }}"
+  data-api-url="{{ block.settings.api_url }}"
+  data-price-selector="{{ block.settings.price_selector | escape }}"
+>
+  <div class="polaris-card">
+    <div class="polaris-card__header">
+      <h3 class="polaris-card__title">{{ block.settings.title | default: "Check Regional Price" }}</h3>
+    </div>
+    <div class="polaris-card__section">
+      <div class="zip-pricing-widget__form-row">
+        <div class="polaris-input-wrapper">
+          <input 
+            type="text" 
+            id="zip-pricing-input" 
+            class="polaris-input-field" 
+            placeholder="Enter 5-digit ZIP code" 
+            maxlength="5"
+            pattern="\d{5}"
+            inputmode="numeric"
+            aria-label="ZIP Code Input"
+          />
+          <div id="zip-pricing-validation-error" class="polaris-inline-error" style="display: none;">
+            Please enter a valid 5-digit US ZIP code.
+          </div>
+        </div>
+        <button 
+          type="button" 
+          id="zip-pricing-submit" 
+          class="polaris-button polaris-button--primary"
+        >
+          <span class="polaris-button__text">{{ block.settings.button_label | default: "Check Price" }}</span>
+          <span class="polaris-button__spinner" style="display: none;">
+            <svg class="polaris-spinner" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="2"></circle>
+            </svg>
+          </span>
+        </button>
+      </div>
+
+      <!-- Polaris Dynamic Feedback Banners (populated via JavaScript) -->
+      <div id="zip-pricing-banner" class="polaris-banner" style="display: none;">
+        <div class="polaris-banner__content">
+          <p id="zip-pricing-banner-text" class="polaris-banner__text"></p>
+          <p id="zip-pricing-banner-trace" class="polaris-banner__trace-text" style="display: none;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "ZIP Code Product Pricing",
+  "target": "block",
+  "templates": ["product"],
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Widget Header Title",
+      "default": "Check Regional Price"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button Label",
+      "default": "Check Price"
+    },
+    {
+      "type": "text",
+      "id": "price_selector",
+      "label": "Custom Price Element CSS Selector (Optional)",
+      "placeholder": ".price-item--regular",
+      "info": "Overrides the automatic selectors fallback chain. Examples: .price-item, .product-single__price"
+    },
+    {
+      "type": "text",
+      "id": "api_url",
+      "label": "FastAPI Server Base URL",
+      "default": "http://127.0.0.1:8000",
+      "placeholder": "https://shopify-zip-pricing.onrender.com"
+    }
+  ]
+}
+{% endschema %}

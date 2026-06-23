@@ -1,0 +1,14 @@
+{
+  "general": {
+    "title": "Check Regional Pricing",
+    "input_placeholder": "Enter 5-digit ZIP code",
+    "button_label": "Check Price",
+    "checking_label": "Verifying...",
+    "error_zip_invalid": "Please enter a valid 5-digit US ZIP code.",
+    "error_general": "Unable to calculate regional price. Please try again later.",
+    "error_trace": "Trace ID: {request_id}",
+    "success_custom_price": "Special pricing applies for your region! {price} calculated.",
+    "info_fallback_price": "Standard pricing applies for your region.",
+    "price_label": "Regional price: {price}"
+  }
+}

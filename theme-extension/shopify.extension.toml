@@ -1,0 +1,9 @@
+# Shopify Theme App Extension Manifest
+# Ref: https://shopify.dev/docs/apps/online-store/theme-app-extensions/configuration
+
+api_version = "2024-10"
+
+[[extensions]]
+type = "theme"
+name = "ZIP Pricing Extension"
+handle = "zip-pricing-extension"
