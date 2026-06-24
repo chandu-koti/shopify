@@ -18,6 +18,53 @@ def test_health_check():
     assert response.status_code == 200
     assert response.json() == {"status": "healthy"}
 
+def test_verify_proxy_success():
+    """
+    Asserts GET /api/v1/pricing/verify-proxy succeeds with a valid Shopify signature.
+    """
+    from app.config import settings
+    original_secret = settings.SHOPIFY_API_SECRET
+    settings.SHOPIFY_API_SECRET = "test_secret"
+    try:
+        import hmac
+        import hashlib
+        import time
+        params = {
+            "shop": "test-store.myshopify.com",
+            "path_prefix": "/apps/zip-pricing",
+            "timestamp": str(int(time.time())),
+            "logged_in_customer_id": ""
+        }
+        sorted_keys = sorted(params.keys())
+        data_string = "".join(f"{k}={params[k]}" for k in sorted_keys)
+        signature = hmac.new(b"test_secret", data_string.encode("utf-8"), hashlib.sha256).hexdigest()
+        params["signature"] = signature
+        
+        response = client.get("/api/v1/pricing/verify-proxy", params=params)
+        assert response.status_code == 200
+        assert response.json() == {"status": "verified"}
+    finally:
+        settings.SHOPIFY_API_SECRET = original_secret
+
+def test_verify_proxy_invalid_signature():
+    """
+    Asserts GET /api/v1/pricing/verify-proxy returns 401 with an invalid signature.
+    """
+    from app.config import settings
+    original_secret = settings.SHOPIFY_API_SECRET
+    settings.SHOPIFY_API_SECRET = "test_secret"
+    try:
+        params = {
+            "shop": "test-store.myshopify.com",
+            "path_prefix": "/apps/zip-pricing",
+            "timestamp": "1234567890",
+            "signature": "invalid_sig"
+        }
+        response = client.get("/api/v1/pricing/verify-proxy", params=params)
+        assert response.status_code == 401
+    finally:
+        settings.SHOPIFY_API_SECRET = original_secret
+
 def test_pricing_rule_75028():
     """
     Asserts ZIP 75028 applies custom pricing rule ($1,499.00) with a valid correlation ID.

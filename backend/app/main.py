@@ -1,5 +1,7 @@
 import logging
-from fastapi import FastAPI, HTTPException, status
+import hmac
+import hashlib
+from fastapi import FastAPI, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -45,6 +47,53 @@ async def validation_exception_handler(request, exc):
         content={"detail": jsonable_encoder(errors)}
     )
 
+def verify_shopify_proxy_signature(request: Request) -> bool:
+    """
+    Calculates the Shopify App Proxy signature and compares it with the incoming query parameter.
+    Returns True if signature is valid, False otherwise.
+    """
+    secret = settings.SHOPIFY_API_SECRET
+    if not secret:
+        logger.error("Shopify App Proxy verification skipped: SHOPIFY_API_SECRET is not set.")
+        return False
+
+    params = dict(request.query_params)
+    signature = params.pop("signature", None)
+    if not signature:
+        logger.warning("Shopify App Proxy verification failed: Missing signature parameter.")
+        return False
+
+    sorted_keys = sorted(params.keys())
+    data_parts = []
+    for key in sorted_keys:
+        value = params[key]
+        if isinstance(value, list):
+            data_parts.append(f"{key}={','.join(value)}")
+        else:
+            data_parts.append(f"{key}={value}")
+
+    data_string = "".join(data_parts)
+    
+    computed_signature = hmac.new(
+        secret.encode("utf-8"),
+        data_string.encode("utf-8"),
+        hashlib.sha256
+    ).hexdigest()
+
+    return hmac.compare_digest(computed_signature, signature)
+
+@app.get("/api/v1/pricing/verify-proxy", tags=["Pricing Engine"])
+async def verify_proxy_route(request: Request):
+    """
+    Dedicated testing route to verify that the App Proxy signature validation is working.
+    """
+    if verify_shopify_proxy_signature(request):
+        return {"status": "verified"}
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid signature or verification failed."
+    )
+
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Operational"])
 async def health_check():
     """
@@ -58,12 +107,21 @@ async def health_check():
     status_code=status.HTTP_200_OK, 
     tags=["Pricing Engine"]
 )
-async def calculate_pricing(payload: PricingRequest):
+async def calculate_pricing(payload: PricingRequest, request: Request):
     """
     Calculates regional custom price rules for a given product and ZIP code.
     If no regional rule is mapped, returns a fallback code signaling standard Shopify pricing.
     """
     logger.info(f"[{payload.request_id}] Querying dynamic pricing for product_id={payload.product_id}, zip_code='{payload.zip_code}'")
+    
+    # Dry-Run Signature check (log status only, do not enforce or block)
+    if "signature" in request.query_params:
+        if verify_shopify_proxy_signature(request):
+            logger.info(f"[{payload.request_id}] Shopify App Proxy signature verified successfully.")
+        else:
+            logger.warning(f"[{payload.request_id}] Shopify App Proxy signature verification FAILED.")
+    else:
+        logger.info(f"[{payload.request_id}] Direct storefront API call received (no signature).")
     
     try:
         custom_price = await PricingService.get_price(
