@@ -9,7 +9,12 @@
     constructor(container) {
       this.container = container;
       this.productId = container.getAttribute('data-product-id');
-      this.apiUrl = container.getAttribute('data-api-url') || '/apps/zip-pricing';
+      let resolvedUrl = container.getAttribute('data-api-url') || '/apps/zip-pricing';
+      // Defensive Rewrite: Force App Proxy routing if configuration contains direct API domains
+      if (resolvedUrl.includes('onrender.com') || resolvedUrl.includes('127.0.0.1:8000') || resolvedUrl.includes('localhost:8000')) {
+        resolvedUrl = '/apps/zip-pricing';
+      }
+      this.apiUrl = resolvedUrl;
       this.merchantSelector = container.getAttribute('data-price-selector');
 
       // Bind element references
