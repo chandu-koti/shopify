@@ -1,0 +1,208 @@
+/* 
+  Shopify Polaris-Inspired Styling Rules
+  Uses clean namespaces to prevent styling collisions with core theme elements.
+*/
+
+:root {
+  --polaris-font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --polaris-color-text: #303030;
+  --polaris-color-subdued: #616161;
+  --polaris-color-border: #e3e3e3;
+  --polaris-color-bg: #ffffff;
+  --polaris-color-primary: #008060; /* Shopify Green */
+  --polaris-color-primary-hover: #006e52;
+  --polaris-color-error: #d72c0d;
+  --polaris-color-error-bg: #fff4f2;
+  --polaris-color-success-bg: #f1f8f5;
+  --polaris-color-info-bg: #f0f4f8;
+  --polaris-border-radius: 8px;
+  --polaris-shadow-card: 0px 1px 3px rgba(0, 0, 0, 0.1), 0px 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.zip-pricing-widget {
+  font-family: var(--polaris-font-stack);
+  color: var(--polaris-color-text);
+  margin: 16px 0;
+  width: 100%;
+  max-width: 480px;
+}
+
+/* Polaris Card Wrapper */
+.polaris-card {
+  background-color: var(--polaris-color-bg);
+  border: 1px solid var(--polaris-color-border);
+  border-radius: var(--polaris-border-radius);
+  box-shadow: var(--polaris-shadow-card);
+  padding: 16px;
+}
+
+.polaris-card__header {
+  margin-bottom: 12px;
+}
+
+.polaris-card__title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--polaris-color-text);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Form Row - Stacked on mobile, side-by-side on desktop */
+.zip-pricing-widget__form-row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .zip-pricing-widget__form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Input Styles */
+.polaris-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.polaris-input-field {
+  font-family: var(--polaris-font-stack);
+  font-size: 14px;
+  height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--polaris-color-border);
+  border-radius: 6px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  color: var(--polaris-color-text);
+  outline: none;
+  transition: border-color 0.2s ease-in-out;
+  width: 100%;
+}
+
+.polaris-input-field:focus {
+  border-color: var(--polaris-color-primary);
+}
+
+.polaris-input-field:disabled {
+  background-color: #f6f6f6;
+  color: var(--polaris-color-subdued);
+  cursor: not-allowed;
+}
+
+/* Validation and Inline Errors */
+.polaris-inline-error {
+  font-size: 12px;
+  color: var(--polaris-color-error);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Button Styles */
+.polaris-button {
+  font-family: var(--polaris-font-stack);
+  font-size: 14px;
+  font-weight: 500;
+  height: 38px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease-in-out;
+  user-select: none;
+  position: relative;
+  min-width: 100px;
+  box-sizing: border-box;
+}
+
+.polaris-button--primary {
+  background-color: var(--polaris-color-primary);
+  color: #ffffff;
+}
+
+.polaris-button--primary:hover {
+  background-color: var(--polaris-color-primary-hover);
+}
+
+.polaris-button:disabled {
+  background-color: #e3e3e3;
+  color: var(--polaris-color-subdued);
+  cursor: not-allowed;
+  border-color: transparent;
+}
+
+/* Spinner Styles */
+.polaris-button__spinner {
+  display: inline-flex;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.polaris-spinner {
+  animation: spin 0.8s linear infinite;
+  height: 20px;
+  width: 20px;
+  color: currentColor;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Polaris Banner Styles */
+.polaris-banner {
+  margin-top: 16px;
+  border-radius: 6px;
+  border: 1px solid var(--polaris-color-border);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.polaris-banner--success {
+  background-color: var(--polaris-color-success-bg);
+  border-color: #a3e0c7;
+  color: #00503c;
+}
+
+.polaris-banner--info {
+  background-color: var(--polaris-color-info-bg);
+  border-color: #c4d7ec;
+  color: #004578;
+}
+
+.polaris-banner--error {
+  background-color: var(--polaris-color-error-bg);
+  border-color: #fdcdc5;
+  color: #8a1f11;
+}
+
+.polaris-banner__text {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.polaris-banner__trace-text {
+  font-size: 11px;
+  font-weight: 400;
+  margin: 4px 0 0 0;
+  opacity: 0.8;
+}

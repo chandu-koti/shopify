@@ -26,12 +26,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-from pathlib import Path
-
-@app.on_event("startup")
-async def startup_diagnostic():
-    logger.warning(f"FASTAPI MAIN FILE LOADED: {Path(__file__).resolve()}")
-
 # Mount CORS Middleware to authorize secure cross-origin requests from Shopify storefronts
 app.add_middleware(
     CORSMiddleware,
@@ -100,35 +94,6 @@ async def verify_proxy_route(request: Request):
         detail="Invalid signature or verification failed."
     )
 
-@app.get("/apps/zip-pricing", tags=["Pricing Engine"])
-async def proxy_diagnostic(request: Request):
-    """
-    Temporary diagnostic endpoint to verify Shopify App Proxy connectivity.
-    """
-    return {
-        "status": "connected",
-        "message": "Shopify App Proxy successfully reached FastAPI backend!",
-        "query_params": dict(request.query_params)
-    }
-
-@app.get("/")
-async def root_proxy_diagnostic(request: Request):
-    """
-    Temporary diagnostic endpoint to verify Shopify App Proxy root connectivity.
-    """
-    return {
-        "status": "connected",
-        "message": "Shopify App Proxy reached backend root route",
-        "query_params": dict(request.query_params)
-    }
-
-@app.get("/debug-runtime")
-async def debug_runtime():
-    from pathlib import Path
-    return {
-        "main_file": str(Path(__file__).resolve())
-    }
-
 @app.get("/proxy/pricing", tags=["Pricing Engine"])
 async def proxy_pricing(request: Request):
     """
@@ -172,13 +137,12 @@ async def calculate_pricing(payload: PricingRequest, request: Request):
     logger.info(f"[{payload.request_id}] Querying dynamic pricing for product_id={payload.product_id}, zip_code='{payload.zip_code}'")
     
     # Dry-Run Signature check (log status only, do not enforce or block)
-    if "signature" in request.query_params:
-        if verify_shopify_proxy_signature(request):
-            logger.info(f"[{payload.request_id}] Shopify App Proxy signature verified successfully.")
-        else:
-            logger.warning(f"[{payload.request_id}] Shopify App Proxy signature verification FAILED.")
-    else:
-        logger.info(f"[{payload.request_id}] Direct storefront API call received (no signature).")
+    # Enforce Shopify signature verification
+    if not verify_shopify_proxy_signature(request):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing Shopify signature. Request must flow through Shopify App Proxy."
+        )
     
     try:
         custom_price = await PricingService.get_price(
