@@ -26,6 +26,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
+from pathlib import Path
+
+@app.on_event("startup")
+async def startup_diagnostic():
+    logger.warning(f"FASTAPI MAIN FILE LOADED: {Path(__file__).resolve()}")
+
 # Mount CORS Middleware to authorize secure cross-origin requests from Shopify storefronts
 app.add_middleware(
     CORSMiddleware,
@@ -114,6 +120,13 @@ async def root_proxy_diagnostic(request: Request):
         "status": "connected",
         "message": "Shopify App Proxy reached backend root route",
         "query_params": dict(request.query_params)
+    }
+
+@app.get("/debug-runtime")
+async def debug_runtime():
+    from pathlib import Path
+    return {
+        "main_file": str(Path(__file__).resolve())
     }
 
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Operational"])
