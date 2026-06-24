@@ -129,6 +129,28 @@ async def debug_runtime():
         "main_file": str(Path(__file__).resolve())
     }
 
+@app.get("/proxy/pricing", tags=["Pricing Engine"])
+async def proxy_pricing(request: Request):
+    """
+    Production verification endpoint for Shopify App Proxy requests.
+    Validates the signature and logs key query parameters.
+    """
+    params = request.query_params
+    logger.info(
+        f"App Proxy Verification request: shop={params.get('shop')}, "
+        f"path_prefix={params.get('path_prefix')}, "
+        f"timestamp={params.get('timestamp')}, "
+        f"signature={params.get('signature')}, "
+        f"logged_in_customer_id={params.get('logged_in_customer_id')}"
+    )
+    
+    if verify_shopify_proxy_signature(request):
+        return {"status": "verified"}
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid signature or verification failed."
+    )
+
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Operational"])
 async def health_check():
     """
