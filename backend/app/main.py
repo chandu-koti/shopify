@@ -94,6 +94,17 @@ async def verify_proxy_route(request: Request):
         detail="Invalid signature or verification failed."
     )
 
+@app.get("/apps/zip-pricing", tags=["Pricing Engine"])
+async def proxy_diagnostic(request: Request):
+    """
+    Temporary diagnostic endpoint to verify Shopify App Proxy connectivity.
+    """
+    return {
+        "status": "connected",
+        "message": "Shopify App Proxy successfully reached FastAPI backend!",
+        "query_params": dict(request.query_params)
+    }
+
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Operational"])
 async def health_check():
     """
