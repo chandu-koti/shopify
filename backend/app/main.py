@@ -105,6 +105,17 @@ async def proxy_diagnostic(request: Request):
         "query_params": dict(request.query_params)
     }
 
+@app.get("/")
+async def root_proxy_diagnostic(request: Request):
+    """
+    Temporary diagnostic endpoint to verify Shopify App Proxy root connectivity.
+    """
+    return {
+        "status": "connected",
+        "message": "Shopify App Proxy reached backend root route",
+        "query_params": dict(request.query_params)
+    }
+
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Operational"])
 async def health_check():
     """
